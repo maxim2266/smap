@@ -87,8 +87,8 @@ representations, that can also be extended to accept other types, like C++ `std:
 ```c
 typedef struct
 {
-	const char* ptr;	// pointer to the first byte of the key
-	size_t len;			// key length, in bytes
+    const char* ptr;  // pointer to the first byte of the key
+    size_t len;       // key length, in bytes
 } smap_key;
 ```
 An object of the type can refer to any range of bytes, possibly with null bytes, as the map does
@@ -124,14 +124,14 @@ Optimises memory consumption for sparse maps. Returns 0 on success, or a non-zer
 memory allocation failure.
 
 `void** smap_get(const smap* const map, const smap_key key)`<br>
-Retrieves the address of the value associated with the given key. Returns NULL pointer if the
+Retrieves the address of the value associated with the given key. Returns NULL if the
 key is not found. The returned address is valid for as long as the given key is in the map,
 and the value at that address can be modified.
 
 `void** smap_set(smap* const map, const smap_key key)`<br>
 Retrieves the address of the value associated with the given key, inserting the key if not already
 present. Initial value of a newly inserted key is NULL. The returned address is valid for as long
-as the given key is in the map. Returns NULL pointer on memory allocation failure.
+as the given key is in the map. Returns NULL on memory allocation failure.
 
 `void*  smap_del(smap* const map, const smap_key key)`<br>
 Removes the given key from the map. Returns the value associated with the key, or NULL if the
@@ -153,6 +153,7 @@ The type of callback function for `smap_scan()`. Parameters:
 * `param`: the opaque value given to `smap_scan()` function;
 * `key`: the key; it is guaranteed to be null-terminated;
 * `pval`: address of the value associated with the `key`.
+
 The value returned from the function is treated as follows:
 * `0`: continue the scan to the next entry;
 * `-1`: delete the current entry and continue the scan. Before returning `-1` the function
