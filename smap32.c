@@ -174,10 +174,15 @@ smap_slot* find_slot(const smap* const map, const smap_key key, const uint32_t h
 }
 
 // helpers ----------------------------------------------------------------------------------------
+#define MIN_MASK	0xf
+#define MIN_CAP 	(MIN_MASK - MIN_MASK / 4)
+#define MAX_MASK	(UINT32_MAX / sizeof(smap_slot))
+#define MAX_CAP		(MAX_MASK - MAX_MASK / 4)
+
 static __attribute__((noinline))
 int grow(smap* const map)
 {
-	if(map->mask == UINT32_MAX)	// ?
+	if(map->mask == MAX_MASK)
 		return 1;
 
 	smap new_map = { .count = map->count, .mask = 2 * map->mask + 1 };
@@ -242,21 +247,18 @@ void delete_slot(smap* const map, uint32_t i)
 #error "Strange platform."
 #endif
 
-#define MIN_MASK	0xf
-#define MIN_CAP 	(MIN_MASK - MIN_MASK / 4)
-
 static inline
 uint32_t calc_mask(const uint32_t cap)
 {
 	if(cap <= MIN_CAP)
 		return MIN_MASK;
-	else if(cap > UINT32_MAX - UINT32_MAX / 4)
-		return UINT32_MAX;
+	else if(cap > MAX_CAP)
+		return MAX_MASK;
 	else
 	{
 		const uint32_t c = UINT32_MAX >> clz(cap);
 
-		return (c - c / 4 < cap) ? ((c << 1) | 1) : c;
+		return (c - c / 4 < cap) ? (2 * c + 1) : c;
 	}
 }
 

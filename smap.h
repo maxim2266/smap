@@ -40,20 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-// smap slot type
-#if __SIZEOF_SIZE_T__ == 8
-
-typedef uintptr_t smap_slot;
-
-#elif __SIZEOF_SIZE_T__ == 4
-
-struct _smap_slot;
-typedef struct _smap_slot smap_slot;
-
-#else
-#error "Unsupported platform"
-#endif
-
 // smap key
 typedef struct
 {
@@ -75,6 +61,16 @@ smap_key smap_bytes(const char* const s, const size_t n)
 
 #define smap_lit(key)	((smap_key){ "" key, sizeof(key) - 1 })
 #define smap_bin(key)	((smap_key){ (const char*)&(key), sizeof(key) })	// requires lvalue key
+
+// smap slot type
+#if __SIZEOF_SIZE_T__ == 8
+typedef uintptr_t smap_slot;
+#elif __SIZEOF_SIZE_T__ == 4
+struct _smap_slot;
+typedef struct _smap_slot smap_slot;
+#else
+#error "Unsupported platform"
+#endif
 
 // smap
 typedef struct
