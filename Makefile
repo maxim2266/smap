@@ -23,7 +23,7 @@ bench: bench32 bench64
 
 # compiler
 CC := gcc
-#CC := clang-10
+#CC := clang-11
 
 # binaries
 test-san-64: $(HDR) $(SRC64)
