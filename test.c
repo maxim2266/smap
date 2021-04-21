@@ -39,6 +39,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <unistd.h>
 
+#ifdef __GNUC__
+#  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
+#else
+#  define UNUSED(x) UNUSED_ ## x
+#endif
+
 TEST_CASE(smap_key_test)
 {
 	TEST(smap_lit("zzz").len == 3);
@@ -94,7 +100,15 @@ TEST_CASE(hash_bench)
 static size_t release_count = 0;
 
 static
-void count_releases(void* p __attribute__((unused))) { ++release_count; }
+void count_releases(void* UNUSED(p)) { ++release_count; }
+
+static
+int count_keys(void* param, const smap_key UNUSED(key), void** pval)
+{
+	++(*(size_t*)param);
+
+	return *pval == NULL;
+}
 
 TEST_CASE(basic_test)
 {
@@ -126,6 +140,11 @@ TEST_CASE(basic_test)
 
 	*smap_set(&map, smap_bin(k)) = (void*)17;
 	TEST(*smap_get(&map, smap_bin(k)) == (void*)17);
+
+	size_t key_count = 0;
+
+	TEST(smap_scan(&map, count_keys, &key_count) == 0);
+	TEST(key_count == 4);
 
 	smap_release(&map, count_releases);
 	TEST(release_count == 4);
@@ -232,7 +251,7 @@ int inc_value(void* param, const smap_key key, void** pval)
 }
 
 static
-int delete_key(void* param, const smap_key key, void** pval __attribute__((unused)))
+int delete_key(void* param, const smap_key key, void** UNUSED(pval))
 {
 	return (key.len == 3 && memcmp(key.ptr, param, key.len) == 0) ? -1 : 0;
 }
