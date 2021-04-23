@@ -7,7 +7,7 @@ The hash table maps strings to `void*` pointers.
 
 Main features:
 * Simple and minimalist API;
-* Good performance with typical compiler settings and without tuning for a particular CPU type;
+* Good [performance](bench64.md) with typical compiler settings and without tuning for a particular CPU type;
 * Support for both 32- and 64-bit platforms;
 * Reduced memory consumption on 64-bit platforms.
 
