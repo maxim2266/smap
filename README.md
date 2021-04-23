@@ -5,7 +5,7 @@
 ### About
 The hash table maps strings to `void*` pointers.
 
-Main features:
+_Main features:_
 * Simple and minimalist API;
 * Good [performance](bench64.md) with typical compiler settings and without tuning for a particular CPU type;
 * Support for both 32- and 64-bit platforms;
@@ -73,10 +73,10 @@ I think most computes simply don't have that much RAM installed.
 in the map). This is a tricky one. It is based on the observation that on most mainstream platforms
 when compiled for default memory model and with default linker script, the memory allocator returns
 pointers with only 6 bytes representing the actual address, leaving the upper two bytes essentially
-unused. Allocating entries with 8 bytes alignment gives another 3 bits, so that one 8 byte value can
-store a pointer _and_ 19 bits of hash, thus reducing the memory occupied by the slots array, also
-improving cache locality. This may or may not work in your particular set-up, so please check before
-using this software.
+unused. This, and also allocating entries with 8 bytes alignment allowes for storing a pointer _and_ 
+19 bits of hash in one 8 byte memory location, thus reducing the memory occupied by the slots array, and
+improving cache locality. This optimisation may or may not work in your particular set-up, so please 
+check before using this software.
 
 ### API
 
