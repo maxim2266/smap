@@ -2,7 +2,7 @@
 
 [![License: BSD 3 Clause](https://img.shields.io/badge/License-BSD_3--Clause-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## About
+### About
 The hash table maps strings to `void*` pointers.
 
 Main features:
@@ -11,13 +11,13 @@ Main features:
 * Support for both 32- and 64-bit platforms;
 * Reduced memory consumption on 64-bit platforms.
 
-## Installation
+### Installation
 None really, just include the files `smap.h` and `smap32.c` and/or `smap64.c` into your project.
 Here `smap.h` is the header with all declarations, `smap32.c` is the implementation for 32-bit
 platforms, and `smap64.c` is the implementation for 64-bit platforms. Alternatively, add this
 project as a `git` submodule.
 
-## Code Example
+### Code Example
 ```c
 // the map object
 smap map;
@@ -52,9 +52,9 @@ free(smap_del(&map, smap_lit("some key")));
 // release the map, with all values passed to free() function
 smap_release(&map, free);
 ```
-In this example all checks for memory allocation errors are omitted for brevity.
+In this example all checks for memory allocation failures are omitted for brevity.
 
-#### Implementation
+### Implementation
 This is essentially an implementation of the open addressing scheme with linear probing,
 like described, for example, [here](https://en.wikipedia.org/wiki/Open_addressing). The 64-bit
 version has some optimisations (see below) to reduce memory consumption, while the 32-bit version
@@ -78,7 +78,7 @@ store a pointer _and_ 19 bits of hash, thus reducing the memory occupied by the 
 improving cache locality. This may or may not work in your particular set-up, so please check before
 using this software.
 
-## API
+### API
 
 #### Key
 The purpose of the `smap_key` type is to provide a convenient adaptor for various string
@@ -160,5 +160,5 @@ The value returned from the function is treated as follows:
 should deallocate all resources associated with the value at `pval`;
 * any other value: stop the scan and return the value.
 
-## Status
+### Status
 Tested on Linux Mint 20.1 with gcc v9.3.0 and clang v11.0.0.
