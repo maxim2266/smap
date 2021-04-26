@@ -314,6 +314,15 @@ TEST_CASE(compact_test)
 }
 
 static
+void print_bench_results(const char* const op, const clock_t start, const size_t n)
+{
+	const double d = ((double)(clock() - start)) / CLOCKS_PER_SEC;
+
+	printf("    %s: %fs (%zu ns/op, %zu op/s)\n",
+		   op, d, (size_t)(d / n * 1e9), (size_t)(n / d));
+}
+
+static
 void run_bench(const size_t n, const size_t len)
 {
 	printf("  %zu keys of %zu bytes (load factor %.2f, memory %.2f Mb)\n",
@@ -323,8 +332,6 @@ void run_bench(const size_t n, const size_t len)
 #else
 		   (((_smap_calc_mask(n) + 1) * 8 + (8 + len) * n)) / (double)(1024 * 1024));
 #endif
-
-	release_count = 0;
 
 	char* const keys = make_fixed_len_keys(n, len);
 
@@ -338,9 +345,7 @@ void run_bench(const size_t n, const size_t len)
 	for(size_t i = 0; i < n; ++i)
 		*smap_set(&map, smap_bytes(keys + i * len, len)) = (void*)(i + 1);
 
-	double d = ((double)(clock() - ts)) / CLOCKS_PER_SEC;
-
-	printf("    set: %fs (%zu ns/op, %zu op/s)\n", d, (size_t)(d / n * 1e9), (size_t)(n / d));
+	print_bench_results("set", ts, n);
 
 	TEST(map.count == n);
 	TEST(map.mask == _smap_calc_mask(n));
@@ -351,9 +356,7 @@ void run_bench(const size_t n, const size_t len)
 	for(size_t i = 0; i < n; ++i)
 		TEST(*smap_get(&map, smap_bytes(keys + i * len, len)) == (void*)(i + 1));
 
-	d = ((double)(clock() - ts)) / CLOCKS_PER_SEC;
-
-	printf("    get: %fs (%zu ns/op, %zu op/s)\n", d, (size_t)(d / n * 1e9), (size_t)(n / d));
+	print_bench_results("get", ts, n);
 
 	// del
 	ts = clock();
@@ -361,13 +364,13 @@ void run_bench(const size_t n, const size_t len)
 	for(size_t i = 0; i < n; ++i)
 		TEST(smap_del(&map, smap_bytes(keys + i * len, len)) == (void*)(i + 1));
 
-	d = ((double)(clock() - ts)) / CLOCKS_PER_SEC;
-
-	printf("    del: %fs (%zu ns/op, %zu op/s)\n", d, (size_t)(d / n * 1e9), (size_t)(n / d));
+	print_bench_results("del", ts, n);
 
 	TEST(map.count == 0);
 
 	// all done
+	release_count = 0;
+
 	smap_release(&map, count_releases);
 	free(keys);
 
