@@ -68,14 +68,14 @@ In order to reduce memory consumption I have put some limits on the 64-bit versi
 into 4G slots (baskets) of 8 bytes each, making it 32G bytes for the slots array, plus 3G of entries,
 each of (16 + key length) bytes, taking up another 144G bytes for 32-byte keys and not counting
 the metadata associated with each of the 3G memory allocations. In total, that's 176G bytes of memory.
-I think most computes simply don't have that much RAM installed.
+I think most of the modern computes simply don't have that much RAM installed.
 * _6 bytes of actual address._ (Applies to the implementation only, not to the `void*` values stored
 in the map). This is a tricky one. It is based on the observation that on most mainstream platforms
 when compiled for default memory model and with default linker script, the memory allocator returns
 pointers with only 6 bytes representing the actual address, leaving the upper two bytes essentially
-unused. This, and also allocating entries with 8 bytes alignment allowes for storing a pointer _and_ 
+unused. Combined with entries allocated with 8 bytes alignment this allows for storing a pointer _and_
 19 bits of hash in one 8 byte memory location, thus reducing the memory occupied by the slots array, and
-improving cache locality. This optimisation may or may not work in your particular set-up, so please 
+improving cache locality. This optimisation may or may not work in your particular set-up, so please
 check before using this software.
 
 ### API
@@ -116,7 +116,7 @@ on memory allocation failure.
 `void smap_release(smap* const map, void (*free_value)(void*))`<br>
 Releases resources allocated for the map. The map object itself is _not_ free'd, but is left in
 a state suitable for re-initialisation using `smap_init()`. The `free_value()` callback function
-is called on each value in the map and is expected to deallocate resources associated with
+is called once per each value in the map and is expected to deallocate resources associated with
 the value, if any.
 
 `int smap_compact(smap* const map)`<br>
@@ -146,7 +146,7 @@ Returns the number of keys currently in the map.
 
 `int smap_scan(smap* const map, const smap_scan_func fn, void* const param)`<br>
 Iterate the map calling the given callback function on each entry. Opaque `param` is passed
-over to the callback function, unchanged.
+over to the callback function, unmodified.
 
 `typedef int (*smap_scan_func)(void* param, const smap_key key, void** pval)`<br>
 The type of callback function for `smap_scan()`. Parameters:

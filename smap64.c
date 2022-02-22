@@ -323,7 +323,7 @@ void delete_slot(smap* const map, uint32_t i)
 #elif __SIZEOF_LONG__ == 4
 #define clz  __builtin_clzl
 #else
-#error "Strange platform."
+#error "Unsupported platform."
 #endif
 
 #define MIN_MASK	0xf
@@ -334,14 +334,13 @@ uint32_t calc_mask(const uint32_t cap)
 {
 	if(cap <= MIN_CAP)
 		return MIN_MASK;
-	else if(cap > UINT32_MAX - UINT32_MAX / 4)
-		return UINT32_MAX;
-	else
-	{
-		const uint32_t c = UINT32_MAX >> clz(cap);
 
-		return (c - c / 4 < cap) ? ((c << 1) | 1) : c;
-	}
+	if(cap > UINT32_MAX - UINT32_MAX / 4)
+		return UINT32_MAX;
+
+	const uint32_t c = UINT32_MAX >> clz(cap);
+
+	return (c - c / 4 < cap) ? ((c << 1) | 1) : c;
 }
 
 // API implementation -----------------------------------------------------------------------------
