@@ -17,6 +17,8 @@ Here `smap.h` is the header with all declarations, `smap32.c` is the implementat
 platforms, and `smap64.c` is the implementation for 64-bit platforms. Alternatively, add this
 project as a `git` submodule.
 
+In the `Makefile` to choose the right implementation for the platform use `smap$(shell getconf LONG_BIT).c`.
+
 ### Code Example
 ```c
 // the map object
