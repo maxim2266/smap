@@ -45,7 +45,7 @@ def tables(inp):
 def print_table_header(num_keys):
 	print(f'\n#### _{num_keys} keys:_')
 	print('key length (bytes) | `smap_set` (Mops/s) | `smap_get` (Mops/s) | `smap_del` (Mops/s)')
-	print('-------------------- | ------------------- | ------------------- | -------------------')
+	print('------------------ | ------------------- | ------------------- | -------------------')
 
 print('''### Benchmarks
 Tested on Linux Mint 20.1, with Intel© Core™ i5-8500T CPU @ 2.10GHz.
