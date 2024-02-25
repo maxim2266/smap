@@ -163,4 +163,4 @@ should deallocate all resources associated with the value at `pval`;
 * any other value: stop the scan and return the value.
 
 ### Status
-Tested on Linux Mint 20.1 with gcc v9.3.0 and clang v11.0.0.
+Tested and benchmarked on Linux Mint 21.3 with gcc v11.4.0 and clang v14.0.0.
