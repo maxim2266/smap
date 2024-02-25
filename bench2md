@@ -1,61 +1,135 @@
-#!/usr/bin/env python3
+#!/usr/bin/env lua
 
-from sys import stdin
-from re import compile as regex
-from functools import reduce
+--[[
+usage scenario:
+	./test-opt-64 > data
+	./bench2md < data > bench64.md
+]]
 
-def tables(inp):
-	# parser and records generator
-	def records():
-		marker_line = regex(r'^\s*(\d+) keys of (\d+) bytes \(load factor')
-		data_line = regex(r'^\s*(set|get|del): (?:\d+\.\d*)s \((\d+) ns/op, (\d+) op/s\)')
+-- shortcuts
+program_pathname = arg[0]
+program_name = program_pathname:match("[^/]+$")
 
-		try:
-			s = next(inp)
-			while True:
-				m = marker_line.match(s)
-				while not m:
-					m = marker_line.match(next(inp))
+-- Lua version check (at least 5.3 is required)
+do
+	local major, minor = _VERSION:match("^Lua ([5-9])%.(%d+)$")
 
-				num_keys, key_len, ops = int(m[1]), int(m[2]), {}
+	if not major or (major == "5" and tonumber(minor) < 3) then
+		perror("cannot run with Lua version %q (at least v5.3 is required)\n", _VERSION)
+		os.exit(false)
+	end
+end
 
-				for s in inp:
-					m = data_line.match(s)
+-- application error reporter (never returns)
+local function fail(msg, ...)
+	if select("#", ...) > 0 then
+		msg = msg:format(...)
+	end
 
-					if not m:
-						break
+	io.stderr:write(program_name, ": [error] ", msg:gsub("%s+$", ""), "\n")
+	os.exit(false)
+end
 
-					ops[m[1]] = (int(m[2]), int(m[3]))	# op -> (ns, ops)
+-- error checker
+local function just(ok, err, code, ...)
+	if ok then
+		return ok, err, code, ...
+	end
 
-				assert(len(ops) == 3)
-				yield num_keys, key_len, ops
+	if math.type(code) == "integer" then
+		-- returning from os.execute or similar
+		if err == "exit" then
+			-- just quit, assuming an error message has already been
+			-- produced by an external program
+			os.exit(code)
+		end
 
-		except StopIteration:
-			pass
+		if err == "signal" then
+			fail("interrupted with signal " .. code)
+		end
+	end
 
-	# aggregator function
-	def add_to_table(t, v):
-		num_keys, key_len, ops = v
-		t.setdefault(num_keys, {})[key_len] = (ops['set'][1], ops['get'][1], ops['del'][1])
-		return t
+	fail(tostring(err))
+end
 
-	# build tables
-	return reduce(add_to_table, records(), {})
+-- find first match of pattern in file
+local function grep_1st(file, patt, err)
+	local src = just(io.open(file))
 
-def print_table_header(num_keys):
-	print(f'\n#### _{num_keys} keys:_')
-	print('key length (bytes) | `smap_set` (Mops/s) | `smap_get` (Mops/s) | `smap_del` (Mops/s)')
-	print('------------------ | ------------------- | ------------------- | -------------------')
+	for s in src:lines() do
+		s = s:match(patt)
 
-print('''### Benchmarks
-Tested on Linux Mint 20.1, with Intel© Core™ i5-8500T CPU @ 2.10GHz.
+		if s then
+			just(src:close())
+			return s
+		end
+	end
 
-In the tables below `Mops/s` stands for millions of operations per second.''')
+	src:close()
+	fail(err .. " in " .. file)
+end
 
-ts = tables(stdin)
+-- compiler name and version
+local function compiler() --> string
+	local cc = grep_1st("Makefile", "^%s*CC%s*:?=%s*(%S+)", "compiler name is not specified")
+	local src = just(io.popen("'" .. cc .. "' --version"))
+	local s = src:read("a")
 
-for num_keys in sorted(ts.keys()):
-	print_table_header(num_keys)
-	t = ts[num_keys]
-	for key_len in sorted(t.keys()):
-		print(key_len, *(f'| {i / 1000000}' for i in t[key_len]))
+	just(src:close())
+
+	return cc .. " " .. s:match("(%S+)\n")
+end
+
+-- markdown header
+local md_header = (function()
+	local os_name = grep_1st("/etc/os-release", '^%s*PRETTY_NAME%s*=%s*"([^"]+)"', "cannot find OS name")
+	local cpu = grep_1st("/proc/cpuinfo", "^model name%s*:%s+(.+)$", "cannot find CPU name")
+
+	return	"### Benchmarks\n```\n" ..
+			"Compiler: " .. compiler() .. "\n" ..
+			"OS:       " .. os_name .. "\n" ..
+			"CPU:      " .. cpu .. "\n```\n\n" ..
+			"In all the tables below `Mops/s` stands for millions of operations per second.\n"
+end)()
+
+-- benchmark table header
+local bm_table_header = [=[
+key length [bytes] | `smap_set` [Mops/s] | `smap_get` [Mops/s] | `smap_del` [Mops/s]
+------------------ | ------------------- | ------------------- | -------------------
+]=]
+
+-- write markdown header
+just(io.stdout:write(md_header))
+
+-- process input lines
+local num_keys, key_len, bench
+
+for s in io.lines() do
+	if not bench then
+		local nk
+
+		nk, key_len = s:match("^%s*(%d+)%s+keys%s+of%s+(%d+)%s+bytes%s+%(")
+
+		if nk then
+			if nk ~= num_keys then
+				-- start new table
+				just(io.stdout:write("\n#### _", nk, " keys:_\n", bm_table_header))
+				num_keys = nk
+			end
+
+			bench = {}
+		end
+	else
+		s = tonumber(s:match("(%d+)%s+op/s%)$"))
+
+		assert(s)
+
+		bench[#bench + 1] = tonumber(s) / 1000000
+
+		if #bench == 3 then
+			-- write out one table line
+			just(io.stdout:write(key_len, " | ", table.concat(bench, " | "), "\n"))
+			bench = nil
+		end
+	end
+end
