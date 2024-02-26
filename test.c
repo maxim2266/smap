@@ -116,9 +116,9 @@ TEST_CASE(basic_test)
 
 	TEST(smap_init(&map, 0) == 0);
 
-	*smap_set(&map, smap_lit("aaa")) = (void*)1;
-	*smap_set(&map, smap_lit("bbb")) = (void*)2;
-	*smap_set(&map, smap_lit("ccc")) = (void*)3;
+	*smap_add(&map, smap_lit("aaa")) = (void*)1;
+	*smap_add(&map, smap_lit("bbb")) = (void*)2;
+	*smap_add(&map, smap_lit("ccc")) = (void*)3;
 	TEST(map.count == 3);
 	TEST(map.mask == 0xf);
 
@@ -133,12 +133,12 @@ TEST_CASE(basic_test)
 	TEST(!smap_get(&map, smap_lit("aaa")));
 	TEST(map.count == 2);
 
-	*smap_set(&map, smap_lit("")) = (void*)42;
+	*smap_add(&map, smap_lit("")) = (void*)42;
 	TEST(*smap_get(&map, smap_lit("")) == (void*)42);
 
 	const int k = 123;
 
-	*smap_set(&map, smap_bin(k)) = (void*)17;
+	*smap_add(&map, smap_bin(k)) = (void*)17;
 	TEST(*smap_get(&map, smap_bin(k)) == (void*)17);
 
 	size_t key_count = 0;
@@ -192,7 +192,7 @@ void do_random_test(const size_t n, const size_t len)
 
 	// add n keys
 	for(size_t i = 0; i < n; ++i)
-		*smap_set(&map, smap_bytes(keys + i * len, len)) = (void*)(i + 1);
+		*smap_add(&map, smap_bytes(keys + i * len, len)) = (void*)(i + 1);
 
 	TEST(map.count == n);
 	TEST(map.mask == _smap_calc_mask(n));
@@ -262,9 +262,9 @@ TEST_CASE(scan_test)
 
 	TEST(smap_init(&map, 0) == 0);
 
-	*smap_set(&map, smap_lit("aaa")) = (void*)1;
-	*smap_set(&map, smap_lit("bbb")) = (void*)2;
-	*smap_set(&map, smap_lit("ccc")) = (void*)3;
+	*smap_add(&map, smap_lit("aaa")) = (void*)1;
+	*smap_add(&map, smap_lit("bbb")) = (void*)2;
+	*smap_add(&map, smap_lit("ccc")) = (void*)3;
 
 	TEST(map.count == 3);
 	TEST(map.mask == 0xf);
@@ -295,9 +295,9 @@ TEST_CASE(compact_test)
 
 	TEST(smap_init(&map, 100) == 0);
 
-	*smap_set(&map, smap_lit("aaa")) = (void*)1;
-	*smap_set(&map, smap_lit("bbb")) = (void*)2;
-	*smap_set(&map, smap_lit("ccc")) = (void*)3;
+	*smap_add(&map, smap_lit("aaa")) = (void*)1;
+	*smap_add(&map, smap_lit("bbb")) = (void*)2;
+	*smap_add(&map, smap_lit("ccc")) = (void*)3;
 
 	TEST(smap_compact(&map) == 0);
 	TEST(map.mask == 0xf);
@@ -343,7 +343,7 @@ void run_bench(const size_t n, const size_t len)
 	clock_t ts = clock();
 
 	for(size_t i = 0; i < n; ++i)
-		*smap_set(&map, smap_bytes(keys + i * len, len)) = (void*)(i + 1);
+		*smap_add(&map, smap_bytes(keys + i * len, len)) = (void*)(i + 1);
 
 	print_bench_results("set", ts, n);
 

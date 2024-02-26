@@ -28,7 +28,7 @@ smap map;
 smap_init(&map, 42);
 
 // insert new key (or replace existing one)
-*smap_set(&map, smap_lit("some key")) = pointer_to_object_of_type_T;
+*smap_add(&map, smap_lit("some key")) = pointer_to_object_of_type_T;
 
 // check if the key exists
 assert(smap_get(&map, smap_lit("some key"));
@@ -130,7 +130,7 @@ Retrieves the address of the value associated with the given key. Returns NULL i
 key is not found. The returned address is valid for as long as the given key is in the map,
 and the value at that address can be modified.
 
-`void** smap_set(smap* const map, const smap_key key)`<br>
+`void** smap_add(smap* const map, const smap_key key)`<br>
 Retrieves the address of the value associated with the given key, inserting the key if not already
 present. Initial value of a newly inserted key is NULL. The returned address is valid for as long
 as the given key is in the map. Returns NULL on memory allocation failure.

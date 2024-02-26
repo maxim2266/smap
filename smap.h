@@ -84,7 +84,7 @@ int smap_compact(smap* const map);
 void smap_release(smap* const map, void (*free_value)(void*));
 
 void** smap_get(const smap* const map, const smap_key key) __attribute__((pure));
-void** smap_set(smap* const map, const smap_key key);
+void** smap_add(smap* const map, const smap_key key);
 void*  smap_del(smap* const map, const smap_key key);
 
 static inline

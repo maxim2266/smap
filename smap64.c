@@ -381,7 +381,7 @@ void** smap_get(const smap* const map, const smap_key key)
 	return slot ? &entry_ptr(slot)->value : NULL;
 }
 
-void** smap_set(smap* const map, const smap_key key)
+void** smap_add(smap* const map, const smap_key key)
 {
 	const uint32_t hash = calc_hash(key);
 	uintptr_t* p = find_slot(map, key, hash);
