@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+# a little script to compile and test with sanitisers enabled
+
+CFLAGS="-fsanitize=address -fsanitize=leak -fsanitize=undefined \
+        -fsanitize-address-use-after-scope -ggdb -fno-omit-frame-pointer \
+        -fno-lto -O0 $*"
+
+make clean
+make test clean "CFLAGS=$CFLAGS"

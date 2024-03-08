@@ -1,2 +1,3 @@
-test-opt-*
-test-san-*
+*.o
+*.a
+test-smap

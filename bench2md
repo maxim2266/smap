@@ -71,8 +71,13 @@ end
 
 -- compiler name and version
 local function compiler() --> string
-	local cc = grep_1st("Makefile", "^%s*CC%s*:?=%s*(%S+)", "compiler name is not specified")
-	local src = just(io.popen("'" .. cc .. "' --version"))
+	local src = just(io.popen("make -p | grep '^CC\\>'"))
+	local cc =  src:read("a"):match("^CC%s*=%s*(%S+)")
+
+	just(src:close())
+
+	src = just(io.popen("'" .. cc .. "' --version"))
+
 	local s = src:read("a")
 
 	just(src:close())
@@ -94,7 +99,7 @@ end)()
 
 -- benchmark table header
 local bm_table_header = [=[
-key length [bytes] | `smap_set` [Mops/s] | `smap_get` [Mops/s] | `smap_del` [Mops/s]
+key length [bytes] | `smap_add` [Mops/s] | `smap_get` [Mops/s] | `smap_del` [Mops/s]
 ------------------ | ------------------- | ------------------- | -------------------
 ]=]
 

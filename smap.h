@@ -1,7 +1,7 @@
 /*
 BSD 3-Clause License
 
-Copyright (c) 2021, Maxim Konakov
+Copyright (c) 2021,2024, Maxim Konakov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,73 +33,98 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <stddef.h>
-#include <stdint.h>
-#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// smap key
-typedef struct
-{
-	const char* ptr;
-	size_t len;
-} smap_key;
-
-static inline
-smap_key smap_str(const char* const s)
-{
-	return s ? ((smap_key){ s, strlen(s) }) : ((smap_key){ "", 0 });
-}
-
-static inline
-smap_key smap_bytes(const char* const s, const size_t n)
-{
-	return (s && n) ? ((smap_key){ s, n }) : ((smap_key){ "", 0 });
-}
-
-#define smap_lit(key)	((smap_key){ "" key, sizeof(key) - 1 })
-#define smap_bin(key)	((smap_key){ (const char*)&(key), sizeof(key) })	// requires lvalue key
-
-// smap slot type
-#if __SIZEOF_SIZE_T__ == 8
-typedef uintptr_t smap_slot;
-#elif __SIZEOF_SIZE_T__ == 4
-struct _smap_slot;
-typedef struct _smap_slot smap_slot;
-#else
-#error "Unsupported platform"
+// max. key length
+#ifndef SMAP_MAX_KEY_LEN
+// Just a sufficiently large number; can be redefined externally
+#define SMAP_MAX_KEY_LEN (256 * 1024 * 1024)
 #endif
 
-// smap
+// smap slot type
+struct _smap_slot;
+typedef struct _smap_slot smap_slot;
+
+// smap type
 typedef struct
 {
 	smap_slot* slots;
-	uint32_t count, mask;
+	size_t count, cap, seed;
 } smap;
 
-int smap_init(smap* const map, const uint32_t cap);
-int smap_compact(smap* const map);
-void smap_release(smap* const map, void (*free_value)(void*));
+#define smap_empty ((smap){0})
 
-void** smap_get(const smap* const map, const smap_key key) __attribute__((pure));
-void** smap_add(smap* const map, const smap_key key);
-void*  smap_del(smap* const map, const smap_key key);
-
+// map capacity
 static inline
-uint32_t smap_cap(const smap* const map)	{ return map->mask - map->mask / 4; }
+size_t smap_cap(const smap* const map)	{ return map->cap - map->cap / 4; }
 
+// number of items
 static inline
-uint32_t smap_size(const smap* const map)	{ return map->count; }
+size_t smap_size(const smap* const map)	{ return map->count; }
 
-// scan the map calling the given function on each key; return value of the function treated as:
-//   0:  proceed with the scan;
-//   -1: delete the current key and proceed; don't forget to delete the value before return!!
-//   any other: stop the scan and return the value.
+// clear the map
+smap* smap_clear(smap* const map, void (*free_value)(void*));
+
+// parameter validation
+#define _SMAP_CHECK_PARAMS(map, key, len)	\
+	do {	\
+		if((len) > SMAP_MAX_KEY_LEN) return NULL;	\
+		if(!((key) && (len))) {	(key) = ""; (len) = 0; }	\
+	} while(0)
+
+// get item
+static inline
+void** smap_get(const smap* const map, const void* key, size_t len)
+{
+	extern void** _smap_get(const smap* const map, const void* key, size_t len);
+
+	if(map->count == 0)
+		return NULL;
+
+	_SMAP_CHECK_PARAMS(map, key, len);
+
+	return _smap_get(map, key, len);
+}
+
+// add item
+static inline
+void** smap_add(smap* const map, const void* key, size_t len)
+{
+	extern void** _smap_add(smap* const map, const void* key, size_t len);
+
+	_SMAP_CHECK_PARAMS(map, key, len);
+
+	return _smap_add(map, key, len);
+}
+
+// delete item
+static inline
+void* smap_del(smap* const map, const void* key, size_t len)
+{
+	extern void* _smap_del(smap* const map, const void* key, size_t len);
+
+	if(map->count == 0)
+		return NULL;
+
+	_SMAP_CHECK_PARAMS(map, key, len);
+
+	return _smap_del(map, key, len);
+}
+
+// resize the map to allocate space for the given number of keys
+int smap_resize(smap* const map, size_t n);
+
+// scan the map calling the given function on each key; the return value of the callback
+// is treated as:
+//   0:   proceed with the scan;
+//   < 0: delete the current key and proceed
+//   > 0: stop the scan and return the value.
 // The map being scanned must not be modified.
 
-typedef int (*smap_scan_func)(void* param, const smap_key key, void** pval);
+typedef int (*smap_scan_func)(void* param, const void* key, size_t len, void** pval);
 
 int smap_scan(smap* const map, const smap_scan_func fn, void* const param);
 

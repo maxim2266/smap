@@ -1,3 +1,6 @@
 [submodule "mite"]
 	path = mite
 	url = https://github.com/maxim2266/mite
+[submodule "wyhash"]
+	path = wyhash
+	url = https://github.com/wangyi-fudan/wyhash
