@@ -7,7 +7,7 @@ The hash table maps keys (byte arrays) to `void*` pointers.
 
 _Main features:_
 * Simple and minimalist API;
-* Good [performance](bench64.md) with typical compiler settings and without tuning for a particular CPU type;
+* Good [performance](bench64.md) with typical compiler settings and without tuning for a particular CPU model;
 * Support for both 32- and 64-bit platforms;
 
 ### Installation

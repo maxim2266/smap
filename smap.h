@@ -79,7 +79,7 @@ smap* smap_clear(smap* const map, void (*free_value)(void*));
 static inline
 void** smap_get(const smap* const map, const void* key, size_t len)
 {
-	extern void** _smap_get(const smap* const map, const void* key, size_t len);
+	extern void** _smap_get(const smap* const map, const void* const key, const size_t len);
 
 	if(map->count == 0)
 		return NULL;
@@ -93,7 +93,7 @@ void** smap_get(const smap* const map, const void* key, size_t len)
 static inline
 void** smap_add(smap* const map, const void* key, size_t len)
 {
-	extern void** _smap_add(smap* const map, const void* key, size_t len);
+	extern void** _smap_add(smap* const map, const void* const key, const size_t len);
 
 	_SMAP_CHECK_PARAMS(map, key, len);
 
@@ -104,7 +104,7 @@ void** smap_add(smap* const map, const void* key, size_t len)
 static inline
 void* smap_del(smap* const map, const void* key, size_t len)
 {
-	extern void* _smap_del(smap* const map, const void* key, size_t len);
+	extern void* _smap_del(smap* const map, const void* const key, const size_t len);
 
 	if(map->count == 0)
 		return NULL;

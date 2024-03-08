@@ -31,7 +31,7 @@ void _smap_delete_slot(smap* const map, size_t i)
 }
 
 // [API] delete item
-void*  _smap_del(smap* const map, const void* key, size_t len)
+void*  _smap_del(smap* const map, const void* const key, const size_t len)
 {
 	const size_t hash = _smap_calc_hash(key, len, map->seed);
 	smap_slot* const slot = _smap_find_slot(map, hash, key, len);

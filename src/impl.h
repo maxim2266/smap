@@ -28,7 +28,10 @@ struct _smap_slot
 };
 
 // find slot for the given key and hash
-smap_slot* _smap_find_slot(const smap* const map, const size_t hash, const void* key, size_t len);
+smap_slot* _smap_find_slot(const smap* const map,
+						   const size_t hash,
+						   const void* const key,
+						   const size_t len);
 
 // delete slot at the given index
 void _smap_delete_slot(smap* const map, size_t i);

@@ -5,7 +5,7 @@
 
 // hash entry constructor
 static
-smap_entry* make_entry(const void* key, size_t len)
+smap_entry* make_entry(const void* const key, const size_t len)
 {
 	smap_entry* const entry = malloc(sizeof(smap_entry) + len);
 
@@ -21,7 +21,10 @@ smap_entry* make_entry(const void* key, size_t len)
 
 // compare slot to the given key and hash
 static inline
-int match_slot(const smap_slot* const slot, const size_t hash, const void* key, size_t len)
+int match_slot(const smap_slot* const slot,
+			   const size_t hash,
+			   const void* const key,
+			   const size_t len)
 {
 	return (slot->hash == hash)
 		&& (len == slot->entry->len)
@@ -29,7 +32,10 @@ int match_slot(const smap_slot* const slot, const size_t hash, const void* key, 
 }
 
 // find matching or first empty slot
-smap_slot* _smap_find_slot(const smap* const map, const size_t hash, const void* key, size_t len)
+smap_slot* _smap_find_slot(const smap* const map,
+						   const size_t hash,
+						   const void* const key,
+						   const size_t len)
 {
 	const size_t mask = map->cap - 1;
 	smap_slot* const slots = map->slots;
@@ -78,7 +84,7 @@ int _smap_resize(smap* const map, const size_t cap)
 }
 
 // [API] get item
-void** _smap_get(const smap* const map, const void* key, size_t len)
+void** _smap_get(const smap* const map, const void* const key, const size_t len)
 {
 	const size_t hash = _smap_calc_hash(key, len, map->seed);
 	smap_entry* const entry = _smap_find_slot(map, hash, key, len)->entry;
@@ -87,7 +93,7 @@ void** _smap_get(const smap* const map, const void* key, size_t len)
 }
 
 // [API] add the key, if not present
-void** _smap_add(smap* const map, const void* key, size_t len)
+void** _smap_add(smap* const map, const void* const key, const size_t len)
 {
 	// check if the map is empty
 	if(!map->slots)
