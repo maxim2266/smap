@@ -76,10 +76,11 @@ Each new instance of the map _must_ be initialised with `smap_empty` value.
 
 `smap* smap_clear(smap* const map, void (*free_value)(void*))`<br>
 Releases resources allocated for the map. The map object itself is reset to empty state and can be
-reused. The `free_value()` callback function (if not NULL) is called once per each value in the map
-and is expected to deallocate resources associated with the value, if any. The return value is a copy
-of the first parameter, just to simplify deallocation when the map itself is on the heap:
-`free(smap_clear(map, free))`
+reused. The `free_value` callback function (if not NULL) is called once per each value in the map
+and is expected to deallocate resources associated with the value. The return value is a copy
+of the first parameter, only to simplify deallocation when the map itself is on the heap, like
+`free(smap_clear(&map, free))`. The function _must_ always be called at the end of `smap` object
+lifetime.
 
 `int smap_resize(smap* const map, size_t n)`<br>
 Resizes the map to accommodate for the given number of keys, or the number of keys currently in
@@ -124,8 +125,8 @@ should deallocate all resources associated with the value at `pval`;
 
 #### Constants
 
-`SMAP_MAX_KEY_LEN` - maximum key length; an arbitrary large number, currently set to 256MB;
-can be redefined externally.
+`SMAP_MAX_KEY_LEN` - maximum key length; an arbitrary large number, currently set to 256MB.
+It can be redefined externally.
 
 ### Status
 Tested and benchmarked on Linux Mint 21.3 with gcc v11.4.0 and clang v14.0.0.
