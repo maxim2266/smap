@@ -122,5 +122,10 @@ The value returned from the function is treated as follows:
 should deallocate all resources associated with the value at `pval`;
 * `> 0`: stop the scan and return the value.
 
+#### Constants
+
+`SMAP_MAX_KEY_LEN` - maximum key length; an arbitrary large number, currently set to 256MB;
+can be redefined externally.
+
 ### Status
 Tested and benchmarked on Linux Mint 21.3 with gcc v11.4.0 and clang v14.0.0.
