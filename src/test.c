@@ -3,6 +3,7 @@
 #include "impl.h"
 
 #include <time.h>
+#include <string.h>
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
@@ -245,68 +246,36 @@ TEST_CASE(capacity_test)
 }
 
 static
-void do_bench_hash(char* const buff, const size_t N, const size_t n)
+void do_hash_bench(const size_t N, const size_t len)
 {
+	if(len < sizeof(size_t))
+	{
+		printf("ERROR: invalid key length: %zu\n", len);
+		return;
+	}
+
+	size_t* const key = memset(malloc(len), 42, len);
 	const size_t seed = _smap_hash_seed();
-	double sum = 0;
-
-#if __SIZEOF_SIZE_T__ == 8
-	const double K = 0x8000000000000000u;
-#elif __SIZEOF_SIZE_T__ == 4
-	const double K = 0x80000000u;
-#endif
-
 	const clock_t start = clock();
 
-	for(const char* s = buff; s < buff + N; s += n)
-		sum += _smap_calc_hash(s, n, seed);
+	for(size_t i = 0; i < N; ++i)
+	{
+		*key = i;
+		_smap_calc_hash(key, len, seed);
+	}
 
 	const double d = (double)(clock() - start) / CLOCKS_PER_SEC;
-	const size_t count = N / n;
 
-	printf("  %zu keys of %zu bytes in %fs (%.2f ns/hash), symmetry = %.3f\n",
-		   count, n, d, d / count * 1e9, sum / count / K);
+	printf("  %zuK keys of %zu bytes in %fs (%.2f ns/hash)\n",
+		   N / 1024, len, d, d / N * 1e9);
+
+	free(key);
 }
 
 TEST_CASE(hash_bench)
 {
-	const size_t N = 128 * 1024 * 1024;
-	char* const buff = malloc(N);
-
-	for(char* p = buff; p < buff + N; ++p)
-		*p = 'a' + rand() % 26;
-
-	for(size_t n = 8; n <= 64 * 1024; n *= 2)
-		do_bench_hash(buff, N, n);
-
-	free((void*)buff);
-}
-
-static
-char* make_fixed_len_keys(const size_t n, const size_t len)
-{
-	static
-	const char letters[] = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-// 	_Static_assert((sizeof(letters) - 1) == 64, "invalid number of letters");
-
-	const uint16_t mask = 64 - 1;
-
-	uint16_t r = rand();
-	char* const buff = malloc(n * len);
-
-	for(size_t i = 0; i < n; ++i)
-	{
-		char* const base = buff + i * len;
-
-		for(char* p = base + snprintf(base, len, "%zu_", i); p < base + len; ++p)
-		{
-			r = ((7 & (uintptr_t)p) == 7) ? rand() : (r >> 1);	// reuse random value
-			*p = letters[r & mask];
-		}
-	}
-
-	return buff;
+	for(size_t len = 8; len <= 128 * 1024; len *= 2)
+		do_hash_bench(128 * 1024 * 1024 / len, len);
 }
 
 static
@@ -330,13 +299,17 @@ void run_bench(const size_t n, const size_t len)
 		   n, len, (double)n / map.cap,
 		   (map.cap * sizeof(smap_slot) + (sizeof(smap_entry) + len) * n)/(double)(1024 * 1024));
 
-	char* const keys = make_fixed_len_keys(n, len);
+	// buffer for key
+	size_t* const key = memset(malloc(len), 42, len);
 
 	// add
 	clock_t ts = clock();
 
 	for(size_t i = 0; i < n; ++i)
-		*smap_add(&map, keys + i * len, len) = (void*)(i + 1);
+	{
+		*key = i;
+		*smap_add(&map, key, len) = (void*)(i + 1);
+	}
 
 	print_bench_results("add", ts, n);
 
@@ -346,7 +319,10 @@ void run_bench(const size_t n, const size_t len)
 	ts = clock();
 
 	for(size_t i = 0; i < n; ++i)
-		TEST(*smap_get(&map, keys + i * len, len) == (void*)(i + 1));
+	{
+		*key = i;
+		TEST(*smap_get(&map, key, len) == (void*)(i + 1));
+	}
 
 	print_bench_results("get", ts, n);
 
@@ -354,20 +330,39 @@ void run_bench(const size_t n, const size_t len)
 	ts = clock();
 
 	for(size_t i = 0; i < n; ++i)
-		TEST(smap_del(&map, keys + i * len, len) == (void*)(i + 1));
+	{
+		*key = i;
+		TEST(smap_del(&map, key, len) == (void*)(i + 1));
+	}
 
 	print_bench_results("del", ts, n);
 
 	TEST(map.count == 0);
 
 	// all done
+	free(key);
 	TEST(clear_map(&map) == 0);
 }
 
 TEST_CASE(smap_bench)
 {
+	// warm up
+	const size_t n = 10000, len = 100000;
+	size_t* const key = memset(malloc(len), 42, len);
+	smap map = smap_empty;
+
+	for(size_t i = 0; i < n; ++i)
+	{
+		*key = i;
+		*smap_add(&map, key, len) = (void*)(i + 1);
+	}
+
+	TEST(smap_clear(&map, NULL) == &map);
+	free(key);
+
+	// run the tests
 	run_bench(1000, 10);
-	run_bench(1000, 32);
+	run_bench(1000, 31);
 	run_bench(1000, 100);
 	run_bench(1000, 316);
 	run_bench(1000, 1000);
@@ -379,29 +374,32 @@ TEST_CASE(smap_bench)
 	run_bench(1000, 1000000);
 
 	run_bench(10000, 10);
-	run_bench(10000, 32);
+	run_bench(10000, 31);
 	run_bench(10000, 100);
 	run_bench(10000, 316);
 	run_bench(10000, 1000);
 	run_bench(10000, 3162);
 	run_bench(10000, 10000);
+	run_bench(10000, 31623);
+	run_bench(10000, 100000);
 
 	run_bench(100000, 10);
-	run_bench(100000, 32);
+	run_bench(100000, 31);
 	run_bench(100000, 100);
 	run_bench(100000, 316);
 	run_bench(100000, 1000);
 	run_bench(100000, 3162);
+	run_bench(100000, 10000);
 
 	run_bench(1000000, 10);
-	run_bench(1000000, 32);
+	run_bench(1000000, 31);
 	run_bench(1000000, 100);
 	run_bench(1000000, 316);
-
-#if __SIZEOF_SIZE_T__ == 8
 	run_bench(1000000, 1000);
 
+#if __SIZEOF_SIZE_T__ == 8
 	run_bench(10000000, 10);
-	run_bench(10000000, 32);
+	run_bench(10000000, 31);
+	run_bench(10000000, 100);
 #endif
 }
