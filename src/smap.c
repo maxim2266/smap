@@ -19,16 +19,13 @@ smap_entry* make_entry(const void* const key, const size_t len)
 	return entry;
 }
 
-// compare slot to the given key and hash
+// compare entry to the given key
 static inline
-int match_slot(const smap_slot* const slot,
-			   const size_t hash,
-			   const void* const key,
-			   const size_t len)
+int match_entry(const smap_entry* const entry,
+				const void* const key,
+				const size_t len)
 {
-	return (slot->hash == hash)
-		&& (len == slot->entry->len)
-		&& (len == 0 || memcmp(slot->entry->key, key, len) == 0);
+	return len == entry->len && memcmp(entry->key, key, len) == 0;
 }
 
 // find matching or first empty slot
@@ -41,9 +38,9 @@ smap_slot* _smap_find_slot(const smap* const map,
 	smap_slot* const slots = map->slots;
 	size_t i;
 
-	for(i = hash & mask;
-		slots[i].entry && !match_slot(&slots[i], hash, key, len);
-		i = (i + 1) & mask);
+	for(i = hash & mask; slots[i].entry; i = (i + 1) & mask)
+		if(hash == slots[i].hash && match_entry(slots[i].entry, key, len))
+			break;
 
 	return &slots[i];
 }
