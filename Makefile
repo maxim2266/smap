@@ -1,5 +1,3 @@
-VPATH = src
-
 # flags
 _CFLAGS := -O2 -std=c99 -pipe -I src \
            -Wall -Wextra -Wformat    \

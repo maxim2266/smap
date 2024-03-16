@@ -7,7 +7,7 @@
 // hash functions
 size_t _smap_hash_seed(void);
 
-size_t _smap_calc_hash(const void* key, size_t len, const size_t seed);
+size_t _smap_calc_hash(const void* const key, const size_t len, const size_t seed);
 
 // smallest capacity of a non-empty smap
 #define BASE_CAP 16
