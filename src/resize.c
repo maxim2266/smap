@@ -13,6 +13,10 @@ size_t round_up(size_t x)
 	x |= x >> 8;
 	x |= x >> 16;
 
+#if __SIZEOF_SIZE_T__ == 8
+	x |= x >> 32;
+#endif
+
 	return x + 1;
 }
 
