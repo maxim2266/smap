@@ -9,7 +9,7 @@ OBJ := $(SRC:.c=.o)
 LIB := libsmap.a
 
 # targets
-.PHONY: lib clean stat test
+.PHONY: lib clean stat test bench
 
 # compiler
 # CC := clang
@@ -35,6 +35,10 @@ test: $(TBIN)
 
 $(TBIN): $(TSRC) $(LIB)
 	$(CC) $(_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.h,$^)
+
+# benchmark
+bench: $(TBIN)
+	@./$(TBIN) -f '_bench$$'
 
 # clean-up
 clean:
