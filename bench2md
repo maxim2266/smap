@@ -2,8 +2,9 @@
 
 --[[
 usage scenario:
-	./test-opt-64 > data
-	./bench2md < data > bench64.md
+	make clean test CFLAGS=-m32
+	./test-smap -t '_bench$' > data
+	./bench2md < data > bench32.md
 ]]
 
 -- shortcuts
