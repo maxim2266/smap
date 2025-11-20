@@ -19,13 +19,13 @@ void init_hash(void)
 }
 
 // the hash calculator
-size_t _smap_calc_hash(const void* const key, const size_t len, const size_t seed)
+size_t smap_impl_calc_hash(const void* const key, const size_t len, const size_t seed)
 {
 	return wyhash(key, len, seed, hash_secret);
 }
 
 // seed generator
-size_t _smap_hash_seed(void)
+size_t smap_impl_hash_seed(void)
 {
 	size_t seed = time(NULL);
 
@@ -44,13 +44,13 @@ size_t _smap_hash_seed(void)
 #include "../wyhash/wyhash32.h"
 
 // the hash calculator
-size_t _smap_calc_hash(const void* const key, const size_t len, const size_t seed)
+size_t smap_impl_calc_hash(const void* const key, const size_t len, const size_t seed)
 {
 	return wyhash32(key, len, seed);
 }
 
 // seed generator
-size_t _smap_hash_seed(void)
+size_t smap_impl_hash_seed(void)
 {
 	unsigned seed = time(NULL);
 

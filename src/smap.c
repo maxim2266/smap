@@ -29,10 +29,10 @@ int match_entry(const smap_entry* const entry,
 }
 
 // find matching or first empty slot
-smap_slot* _smap_find_slot(const smap* const map,
-						   const size_t hash,
-						   const void* const key,
-						   const size_t len)
+smap_slot* smap_impl_find_slot(const smap* const map,
+							   const size_t hash,
+							   const void* const key,
+							   const size_t len)
 {
 	const size_t mask = map->cap - 1;
 	smap_slot* const slots = map->slots;
@@ -46,7 +46,7 @@ smap_slot* _smap_find_slot(const smap* const map,
 }
 
 // resize the map to the given capacity
-int _smap_resize(smap* const map, const size_t cap)
+int smap_impl_resize(smap* const map, const size_t cap)
 {
 	// allocate new slots array
 	smap_slot* const slots = calloc(cap, sizeof(smap_slot));
@@ -81,16 +81,16 @@ int _smap_resize(smap* const map, const size_t cap)
 }
 
 // [API] get item
-void** _smap_get(const smap* const map, const void* const key, const size_t len)
+void** smap_impl_get(const smap* const map, const void* const key, const size_t len)
 {
-	const size_t hash = _smap_calc_hash(key, len, map->seed);
-	smap_entry* const entry = _smap_find_slot(map, hash, key, len)->entry;
+	const size_t hash = smap_impl_calc_hash(key, len, map->seed);
+	smap_entry* const entry = smap_impl_find_slot(map, hash, key, len)->entry;
 
 	return entry ? &entry->value : NULL;
 }
 
 // [API] add the key, if not present
-void** _smap_add(smap* const map, const void* const key, const size_t len)
+void** smap_impl_add(smap* const map, const void* const key, const size_t len)
 {
 	// check if the map is empty
 	if(!map->slots)
@@ -105,13 +105,13 @@ void** _smap_add(smap* const map, const void* const key, const size_t len)
 		{
 			.slots = slots,
 			.cap = BASE_CAP,
-			.seed = _smap_hash_seed()
+			.seed = smap_impl_hash_seed()
 		};
 	}
 
 	// get the slot
-	const size_t hash = _smap_calc_hash(key, len, map->seed);
-	smap_slot* slot = _smap_find_slot(map, hash, key, len);
+	const size_t hash = smap_impl_calc_hash(key, len, map->seed);
+	smap_slot* slot = smap_impl_find_slot(map, hash, key, len);
 
 	// check if the key is not there
 	if(!slot->entry)
@@ -119,11 +119,11 @@ void** _smap_add(smap* const map, const void* const key, const size_t len)
 		// check if the count is at the limit
 		if(map->count == smap_cap(map))
 		{
-			if(_smap_resize(map, map->cap * 2))
+			if(smap_impl_resize(map, map->cap * 2))
 				return NULL;
 
 			// get the slot again
-			slot = _smap_find_slot(map, hash, key, len);
+			slot = smap_impl_find_slot(map, hash, key, len);
 		}
 
 		// insert the new key

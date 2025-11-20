@@ -5,9 +5,9 @@
 #include <stdint.h>
 
 // hash functions
-size_t _smap_hash_seed(void);
+size_t smap_impl_hash_seed(void);
 
-size_t _smap_calc_hash(const void* const key, const size_t len, const size_t seed);
+size_t smap_impl_calc_hash(const void* const key, const size_t len, const size_t seed);
 
 // smallest capacity of a non-empty smap
 #define BASE_CAP 16
@@ -21,20 +21,20 @@ typedef struct _smap_entry
 } smap_entry;
 
 // hash slot
-struct _smap_slot
+struct smap_slot_struct
 {
 	smap_entry* entry;
 	size_t      hash;
 };
 
 // find slot for the given key and hash
-smap_slot* _smap_find_slot(const smap* const map,
-						   const size_t hash,
-						   const void* const key,
-						   const size_t len);
+smap_slot* smap_impl_find_slot(const smap* const map,
+							   const size_t hash,
+							   const void* const key,
+							   const size_t len);
 
 // delete slot at the given index
-void _smap_delete_slot(smap* const map, size_t i);
+void smap_impl_delete_slot(smap* const map, size_t i);
 
 // resize the map to the given capacity
-int _smap_resize(smap* const map, const size_t cap);
+int smap_impl_resize(smap* const map, const size_t cap);

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 // delete slot at the given index
-void _smap_delete_slot(smap* const map, size_t i)
+void smap_impl_delete_slot(smap* const map, size_t i)
 {
 	--map->count;
 
@@ -31,10 +31,10 @@ void _smap_delete_slot(smap* const map, size_t i)
 }
 
 // [API] delete item
-void* _smap_del(smap* const map, const void* const key, const size_t len)
+void* smap_impl_del(smap* const map, const void* const key, const size_t len)
 {
-	const size_t hash = _smap_calc_hash(key, len, map->seed);
-	smap_slot* const slot = _smap_find_slot(map, hash, key, len);
+	const size_t hash = smap_impl_calc_hash(key, len, map->seed);
+	smap_slot* const slot = smap_impl_find_slot(map, hash, key, len);
 
 	if(!slot->entry)
 		return NULL;
@@ -42,7 +42,7 @@ void* _smap_del(smap* const map, const void* const key, const size_t len)
 	void* const value = slot->entry->value;
 
 	free(slot->entry);
-	_smap_delete_slot(map, slot - map->slots);
+	smap_impl_delete_slot(map, slot - map->slots);
 
 	return value;
 }

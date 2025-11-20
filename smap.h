@@ -45,8 +45,8 @@ extern "C" {
 #endif
 
 // smap slot type
-struct _smap_slot;
-typedef struct _smap_slot smap_slot;
+struct smap_slot_struct;
+typedef struct smap_slot_struct smap_slot;
 
 // smap type
 typedef struct
@@ -69,7 +69,7 @@ size_t smap_size(const smap* const map)	{ return map->count; }
 smap* smap_clear(smap* const map, void (*free_value)(void*));
 
 // parameter validation
-#define _SMAP_CHECK_PARAMS(map, key, len)	\
+#define SMAP_CHECK_PARAMS(map, key, len)	\
 	do {	\
 		if((len) > SMAP_MAX_KEY_LEN) return NULL;	\
 		if(!((key) && (len))) {	(key) = ""; (len) = 0; }	\
@@ -79,39 +79,39 @@ smap* smap_clear(smap* const map, void (*free_value)(void*));
 static inline
 void** smap_get(const smap* const map, const void* key, size_t len)
 {
-	extern void** _smap_get(const smap* const map, const void* const key, const size_t len);
+	extern void** smap_impl_get(const smap* const map, const void* const key, const size_t len);
 
 	if(map->count == 0)
 		return NULL;
 
-	_SMAP_CHECK_PARAMS(map, key, len);
+	SMAP_CHECK_PARAMS(map, key, len);
 
-	return _smap_get(map, key, len);
+	return smap_impl_get(map, key, len);
 }
 
 // add item
 static inline
 void** smap_add(smap* const map, const void* key, size_t len)
 {
-	extern void** _smap_add(smap* const map, const void* const key, const size_t len);
+	extern void** smap_impl_add(smap* const map, const void* const key, const size_t len);
 
-	_SMAP_CHECK_PARAMS(map, key, len);
+	SMAP_CHECK_PARAMS(map, key, len);
 
-	return _smap_add(map, key, len);
+	return smap_impl_add(map, key, len);
 }
 
 // delete item
 static inline
 void* smap_del(smap* const map, const void* key, size_t len)
 {
-	extern void* _smap_del(smap* const map, const void* const key, const size_t len);
+	extern void* smap_impl_del(smap* const map, const void* const key, const size_t len);
 
 	if(map->count == 0)
 		return NULL;
 
-	_SMAP_CHECK_PARAMS(map, key, len);
+	SMAP_CHECK_PARAMS(map, key, len);
 
-	return _smap_del(map, key, len);
+	return smap_impl_del(map, key, len);
 }
 
 // resize the map to allocate space for the given number of keys

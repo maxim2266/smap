@@ -21,7 +21,7 @@ int smap_scan(smap* const map, const smap_scan_func fn, void* const param)
 		else				// delete current key and proceed
 		{
 			free(p->entry);
-			_smap_delete_slot(map, p - map->slots);
+			smap_impl_delete_slot(map, p - map->slots);
 		}
 	}
 

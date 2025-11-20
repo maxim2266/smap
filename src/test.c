@@ -13,10 +13,10 @@
 
 TEST_CASE(hash_test)
 {
-	const size_t seed = _smap_hash_seed();
+	const size_t seed = smap_impl_hash_seed();
 	const char* const s = "xxxxxx";
 
-	TEST(_smap_calc_hash(s, 3, seed) == _smap_calc_hash(s + 3, 3, seed));
+	TEST(smap_impl_calc_hash(s, 3, seed) == smap_impl_calc_hash(s + 3, 3, seed));
 }
 
 static
@@ -255,13 +255,13 @@ void do_hash_bench(const size_t N, const size_t len)
 	}
 
 	size_t* const key = memset(malloc(len), 42, len);
-	const size_t seed = _smap_hash_seed();
+	const size_t seed = smap_impl_hash_seed();
 	const clock_t start = clock();
 
 	for(size_t i = 0; i < N; ++i)
 	{
 		*key = i;
-		_smap_calc_hash(key, len, seed);
+		smap_impl_calc_hash(key, len, seed);
 	}
 
 	const double d = (double)(clock() - start) / CLOCKS_PER_SEC;

@@ -41,6 +41,6 @@ int smap_resize(smap* const map, size_t n)
 	if(n >= cap - cap / 4)
 		cap *= 2;
 
-	return (cap == map->cap) ? 0 : _smap_resize(map, cap);
+	return (cap == map->cap) ? 0 : smap_impl_resize(map, cap);
 }
 
