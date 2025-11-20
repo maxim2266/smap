@@ -68,23 +68,17 @@ size_t smap_size(const smap* const map)	{ return map->count; }
 // clear the map
 smap* smap_clear(smap* const map, void (*free_value)(void*));
 
-// parameter validation
-#define SMAP_CHECK_PARAMS(map, key, len)	\
-	do {	\
-		if((len) > SMAP_MAX_KEY_LEN) return NULL;	\
-		if(!((key) && (len))) {	(key) = ""; (len) = 0; }	\
-	} while(0)
-
 // get item
 static inline
 void** smap_get(const smap* const map, const void* key, size_t len)
 {
 	extern void** smap_impl_get(const smap* const map, const void* const key, const size_t len);
 
-	if(map->count == 0)
+	if(map->count == 0 || len > SMAP_MAX_KEY_LEN)
 		return NULL;
 
-	SMAP_CHECK_PARAMS(map, key, len);
+	len = key ? len : 0;
+	key = (len > 0) ? key : "";
 
 	return smap_impl_get(map, key, len);
 }
@@ -95,7 +89,11 @@ void** smap_add(smap* const map, const void* key, size_t len)
 {
 	extern void** smap_impl_add(smap* const map, const void* const key, const size_t len);
 
-	SMAP_CHECK_PARAMS(map, key, len);
+	if(len > SMAP_MAX_KEY_LEN)
+		return NULL;
+
+	len = key ? len : 0;
+	key = (len > 0) ? key : "";
 
 	return smap_impl_add(map, key, len);
 }
@@ -106,10 +104,11 @@ void* smap_del(smap* const map, const void* key, size_t len)
 {
 	extern void* smap_impl_del(smap* const map, const void* const key, const size_t len);
 
-	if(map->count == 0)
+	if(map->count == 0 || len > SMAP_MAX_KEY_LEN)
 		return NULL;
 
-	SMAP_CHECK_PARAMS(map, key, len);
+	len = key ? len : 0;
+	key = (len > 0) ? key : "";
 
 	return smap_impl_del(map, key, len);
 }
