@@ -74,13 +74,10 @@ void** smap_get(const smap* const map, const void* key, size_t len)
 {
 	extern void** smap_impl_get(const smap* const map, const void* const key, const size_t len);
 
-	if(map->count == 0 || len > SMAP_MAX_KEY_LEN)
-		return NULL;
-
 	len = key ? len : 0;
 	key = (len > 0) ? key : "";
 
-	return smap_impl_get(map, key, len);
+	return (len <= SMAP_MAX_KEY_LEN && map->count > 0) ? smap_impl_get(map, key, len) : NULL;
 }
 
 // add item
@@ -89,13 +86,10 @@ void** smap_add(smap* const map, const void* key, size_t len)
 {
 	extern void** smap_impl_add(smap* const map, const void* const key, const size_t len);
 
-	if(len > SMAP_MAX_KEY_LEN)
-		return NULL;
-
 	len = key ? len : 0;
 	key = (len > 0) ? key : "";
 
-	return smap_impl_add(map, key, len);
+	return (len <= SMAP_MAX_KEY_LEN) ? smap_impl_add(map, key, len) : NULL;
 }
 
 // delete item
@@ -104,13 +98,10 @@ void* smap_del(smap* const map, const void* key, size_t len)
 {
 	extern void* smap_impl_del(smap* const map, const void* const key, const size_t len);
 
-	if(map->count == 0 || len > SMAP_MAX_KEY_LEN)
-		return NULL;
-
 	len = key ? len : 0;
 	key = (len > 0) ? key : "";
 
-	return smap_impl_del(map, key, len);
+	return (len <= SMAP_MAX_KEY_LEN && map->count > 0) ? smap_impl_del(map, key, len) : NULL;
 }
 
 // resize the map to allocate space for the given number of keys
