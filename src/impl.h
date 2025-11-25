@@ -13,7 +13,7 @@ size_t smap_impl_calc_hash(const void* const key, const size_t len, const size_t
 #define BASE_CAP 16
 
 // hash entry
-typedef struct _smap_entry
+typedef struct
 {
 	void*   value;	// user-provided value
 	size_t  len;	// key length
